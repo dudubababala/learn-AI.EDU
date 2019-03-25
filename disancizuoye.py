@@ -90,12 +90,13 @@ def CheckLoss(W, B, X, Y):
     return loss
 
 
-def GetBatchSamples(X, Y, batch_size):
-    Sample_index = np.random.permutation(X.shape[1])
-    Sample_group = X.shape[1] // batch_size
-    for every_batch in np.array_split(Sample_index, Sample_group):
-        batch_x, batch_y = X[every_batch], Y[every_batch]
-        yield  batch_x, batch_y
+def GetBatchSamples(X, Y, batch_size, iteration):
+    num_feature = X.shape[0]
+    start = iteration * batch_size
+    end = start + batch_size
+    batch_x = X[0:num_feature, start:end].reshape(num_feature, batch_size)
+    batch_y = Y[0, start:end].reshape(1, batch_size)
+    return batch_x, batch_y
 
 
 def GetMinimalLossData(dict_loss):
@@ -208,7 +209,7 @@ if __name__ == '__main__':
 
     # 修改method分别为下面三个参数，运行程序，对比不同的运行结果
     # SGD, MiniBatch, FullBatch
-    method = "MiniBatch"
+    method = "FullBatch"
 
     eta, max_epoch, batch_size = InitializeHyperParameters(method)
 
@@ -226,8 +227,9 @@ if __name__ == '__main__':
     max_iteration = (int)(num_example / batch_size)
     for epoch in range(max_epoch):
         print("epoch=%d" % epoch)
-        for batch_x, batch_y in GetBatchSamples(X, Y, batch_size):
+        for iteration in range(max_iteration):
             # get x and y value for one sample
+            batch_x, batch_y = GetBatchSamples(X, Y, batch_size, iteration)
             # get z from x,y
             batch_z = ForwardCalculationBatch(W, B, batch_x)
             # calculate gradient of w and b
@@ -256,3 +258,4 @@ if __name__ == '__main__':
     print(result)
 
     loss_2d(X, Y, 200, dict_loss, method, cdata)
+
