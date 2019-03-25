@@ -5,6 +5,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+import random
 
 x_data_name = "TemperatureControlXData.dat"
 y_data_name = "TemperatureControlYData.dat"
@@ -90,13 +91,21 @@ def CheckLoss(W, B, X, Y):
     return loss
 
 
-def GetBatchSamples(X, Y, batch_size, iteration):
-    num_feature = X.shape[0]
-    start = iteration * batch_size
-    end = start + batch_size
-    batch_x = X[0:num_feature, start:end].reshape(num_feature, batch_size)
-    batch_y = Y[0, start:end].reshape(1, batch_size)
+def RandomSample(X,Y,batchsize):
+    batch_x = np.zeros((1,batchsize))
+    batch_y = np.zeros((1,batchsize))
+    for i in range(batchsize):
+        if X.shape[1]==0:
+            print("wrong")
+            break
+        else:
+            r=random.randint(0,X.shape[1]-1)
+            batch_x[0,i] = X[0,r]
+            X = np.delete(X,i,axis=1)
+            batch_y[0,i] = Y[0,r]
+            Y = np.delete(Y,i,axis=1)
     return batch_x, batch_y
+
 
 
 def GetMinimalLossData(dict_loss):
@@ -209,7 +218,7 @@ if __name__ == '__main__':
 
     # 修改method分别为下面三个参数，运行程序，对比不同的运行结果
     # SGD, MiniBatch, FullBatch
-    method = "FullBatch"
+    method = "MiniBatch"
 
     eta, max_epoch, batch_size = InitializeHyperParameters(method)
 
@@ -229,7 +238,7 @@ if __name__ == '__main__':
         print("epoch=%d" % epoch)
         for iteration in range(max_iteration):
             # get x and y value for one sample
-            batch_x, batch_y = GetBatchSamples(X, Y, batch_size, iteration)
+            batch_x, batch_y = RandomSample(X, Y, batch_size)
             # get z from x,y
             batch_z = ForwardCalculationBatch(W, B, batch_x)
             # calculate gradient of w and b
